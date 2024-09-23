@@ -6,7 +6,7 @@ import (
 )
 type Config struct {
   File string `arg:""`
-  Mode t.MediaType `short:"m"`
+  Mode t.MediaType `short:"m" required:"" enum:"tv,movie"`
 }
 
 func (c Config) FileName() string {

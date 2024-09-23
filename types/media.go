@@ -23,10 +23,12 @@ const (
 )
 
 func (t *MediaType) UnmarshalText(text []byte) error {
-	res, err := mediaTypeFromString(string(text))
+	res, err := MediaTypeFromString(string(text))
 	if err == nil {
-		t = &res
+		*t = res
 	}
+  fmt.Printf("t: %s\n", t)
+
 	return err
 }
 func (t MediaType) String() string {
@@ -40,8 +42,8 @@ func (t MediaType) String() string {
 	}
 }
 
-func mediaTypeFromString(s string) (MediaType, error) {
-	switch s {
+func MediaTypeFromString(s string) (MediaType, error) {
+	switch strings.ToLower(s) {
 	case "tv":
 		return Tv, nil
 	case "movie":
@@ -116,7 +118,7 @@ func (t *Media) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &realMedia); err != nil {
 		return err
 	}
-	typ, err := mediaTypeFromString(realMedia.Typ)
+	typ, err := MediaTypeFromString(realMedia.Typ)
 	if err != nil {
 		return err
 	}
