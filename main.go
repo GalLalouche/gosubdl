@@ -6,15 +6,16 @@ import (
 	"gosubdl/common"
 	r "gosubdl/requests"
 	t "gosubdl/types"
+	"net/url"
 	"regexp"
 	"strconv"
 
 	"github.com/alecthomas/kong"
-  "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-  _ = godotenv.Load() // Ignoring failed loads, since this might run from outside the source dir.
+	_ = godotenv.Load() // Ignoring failed loads, since this might run from outside the source dir.
 	var config Config
 	kong.Parse(&config)
 	switch config.Mode {
@@ -35,9 +36,12 @@ func downloadTvSubtitles(fileName string) {
 		panic(err)
 	}
 	fetchTvSubtitles := func(id t.SdId) (t.Subtitles, error) {
-		subs, err := r.GetTvSeasonSubtitles(id, season)
+		subs, url, err := r.GetTvSeasonSubtitles(id, season)
 		if err != nil {
 			return t.Subtitles{}, err
+		}
+		if len(subs) == 0 {
+			return t.Subtitles{}, errors.New(fmt.Sprintf("Could not fetch any subtitles; URL: '%s'", url))
 		}
 		return chooseSubtitles(subs)
 	}
@@ -46,7 +50,7 @@ func downloadTvSubtitles(fileName string) {
 
 func downloadSubtitles(
 	fileName string,
-	sdIdFetcher func(string) ([]t.NameAndSdId, error),
+	sdIdFetcher func(string) ([]t.NameAndSdId, *url.URL, error),
 	subtitlesFetcher func(t.SdId) (t.Subtitles, error),
 ) {
 	sdId, err := fetchSdId(fileName, sdIdFetcher)
@@ -67,14 +71,14 @@ func extractSeason(file string) (int, error) {
 	return strconv.Atoi(re.FindStringSubmatch(file)[1])
 }
 
-func fetchSdId(fileName string, fetcher func(string) ([]t.NameAndSdId, error)) (t.NameAndSdId, error) {
+func fetchSdId(fileName string, fetcher func(string) ([]t.NameAndSdId, *url.URL, error)) (t.NameAndSdId, error) {
 	fmt.Printf("Fetching SD IDs for %s\n", fileName)
-	sdIds, err := fetcher(fileName)
+	sdIds, url, err := fetcher(fileName)
 	if err != nil {
 		return t.NameAndSdId{}, err
 	}
 	if len(sdIds) == 0 {
-		return t.NameAndSdId{}, errors.New("Could not fetch any IDs")
+		return t.NameAndSdId{}, errors.New(fmt.Sprintf("Could not fetch any IDs; URL: '%s'", url))
 	}
 	fmt.Printf("Fetched %d SD IDs, please input a number matching the correct name\n", len(sdIds))
 	printList(sdIds)
@@ -84,17 +88,17 @@ func fetchSdId(fileName string, fetcher func(string) ([]t.NameAndSdId, error)) (
 }
 
 func fetchMovieSubtitles(id t.SdId) (t.Subtitles, error) {
-	subs, err := r.GetMovieSubtitles(id)
+	subs, url, err := r.GetMovieSubtitles(id)
 	if err != nil {
 		return t.Subtitles{}, err
+	}
+	if len(subs) == 0 {
+		return t.Subtitles{}, errors.New(fmt.Sprintf("Could not fetch any subtitles; URL: '%s'", url))
 	}
 	return chooseSubtitles(subs)
 }
 
 func chooseSubtitles(subs []t.Subtitles) (t.Subtitles, error) {
-	if len(subs) == 0 {
-		return t.Subtitles{}, errors.New("Could not fetch any subtitles")
-	}
 	fmt.Printf("Fetched %d subtitles, please input a number matching the correct name\n", len(subs))
 	printList(subs)
 	i := readNum(len(subs))
