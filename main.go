@@ -14,9 +14,7 @@ import (
 )
 
 func main() {
-  if err := godotenv.Load(); err != nil {
-    panic("Loading .env file failed: " + err.Error())
-  }
+  _ = godotenv.Load() // Ignoring failed loads, since this might run from outside the source dir.
 	var config Config
 	kong.Parse(&config)
 	switch config.Mode {
