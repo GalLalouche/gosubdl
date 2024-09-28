@@ -121,10 +121,15 @@ func (r *request) update(q *url.Values) {
 	}
 }
 
+var apiKeyDuringBuild string
+
 func apiKey() string {
 	res, exists := os.LookupEnv("SUBDL_API_KEY")
-  if !exists {
-    panic("Missing SUBDL_API_KEY environment variable")
-  }
-	return res
+	if exists {
+		return res
+	}
+	if apiKeyDuringBuild != "" {
+		return apiKeyDuringBuild
+	}
+	panic("Missing SUBDL_API_KEY environment variable")
 }

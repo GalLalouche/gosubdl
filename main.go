@@ -11,11 +11,9 @@ import (
 	"strconv"
 
 	"github.com/alecthomas/kong"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	_ = godotenv.Load() // Ignoring failed loads, since this might run from outside the source dir.
 	var config Config
 	kong.Parse(&config)
 	switch config.Mode {
