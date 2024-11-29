@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"gosubdl/common"
@@ -71,6 +72,16 @@ func downloadSubtitles(
 ) {
 	sdId, err := fetchSdId(fileName, sdIdFetcher)
 	if err != nil {
+		if strings.Contains(err.Error(), "can't find movie or tv") {
+			fmt.Println("Could not find movie or tv show with name file name, please type the correct name")
+      scanner := bufio.NewScanner(os.Stdin)
+      if scanner.Scan() {
+        fileName = scanner.Text()
+      }
+			fmt.Printf("Using new file name: %s\n", fileName)
+			downloadSubtitles(fileName, sdIdFetcher, subtitlesFetcher)
+      return
+		}
 		panic(err)
 	}
 	sub, err := subtitlesFetcher(sdId.Id)
