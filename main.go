@@ -7,8 +7,10 @@ import (
 	r "gosubdl/requests"
 	t "gosubdl/types"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/alecthomas/kong"
 )
@@ -16,7 +18,23 @@ import (
 func main() {
 	var config Config
 	kong.Parse(&config)
-	switch config.Mode {
+	var mode t.MediaType
+	if config.Mode == nil {
+		path, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		if strings.Contains(path, "Movies") {
+			mode = t.Movie
+		} else if strings.Contains(path, "TV") {
+			mode = t.Tv
+		} else {
+			panic(fmt.Sprintf("Could not extract modeu from file '%s', please specify it using -m", path))
+		}
+	} else {
+		mode = *config.Mode
+	}
+	switch mode {
 	case t.Movie:
 		downloadMovieSubtitles(config.FileName())
 	case t.Tv:
