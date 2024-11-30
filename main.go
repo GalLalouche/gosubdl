@@ -107,6 +107,10 @@ func fetchSdId(fileName string, fetcher func(string) ([]t.NameAndSdId, *url.URL,
 	if len(sdIds) == 0 {
 		return t.NameAndSdId{}, errors.New(fmt.Sprintf("Could not fetch any IDs; URL: '%s'", url))
 	}
+  if len(sdIds) == 1 {
+    fmt.Printf("Fetched 1 SD ID, using it: %+v\n", sdIds[0])
+    return sdIds[0], nil
+  }
 	fmt.Printf("Fetched %d SD IDs, please input a number matching the correct name\n", len(sdIds))
 	printList(sdIds)
 	i := readDigit(len(sdIds))
@@ -126,6 +130,10 @@ func fetchMovieSubtitles(id t.SdId) (t.Subtitles, error) {
 }
 
 func chooseSubtitles(subs []t.Subtitles) (t.Subtitles, error) {
+  if len(subs) == 1 {
+    fmt.Printf("Fetched 1 subtitle, using it: %+v\n", subs[0])
+    return subs[0], nil
+  }
 	fmt.Printf("Fetched %d subtitles, please input a number matching the correct name\n", len(subs))
 	printList(subs)
 	i := readNum(len(subs))
