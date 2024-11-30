@@ -111,7 +111,7 @@ func fetchSdId(fileName string, fetcher func(string) ([]t.NameAndSdId, *url.URL,
     fmt.Printf("Fetched 1 SD ID, using it: %+v\n", sdIds[0])
     return sdIds[0], nil
   }
-	fmt.Printf("Fetched %d SD IDs, please input a number matching the correct name\n", len(sdIds))
+	fmt.Printf("Fetched %d SD IDs, please input a digit matching the correct name\n", len(sdIds))
 	printList(sdIds)
 	i := readDigit(len(sdIds))
 	fmt.Println("")
@@ -134,10 +134,21 @@ func chooseSubtitles(subs []t.Subtitles) (t.Subtitles, error) {
     fmt.Printf("Fetched 1 subtitle, using it: %+v\n", subs[0])
     return subs[0], nil
   }
-	fmt.Printf("Fetched %d subtitles, please input a number matching the correct name\n", len(subs))
+  var instruction string
+  if len(subs) <= 10 {
+    instruction = "digit"
+  } else {
+    instruction = "number"
+  }
+	fmt.Printf("Fetched %d subtitles, please input a %s matching the correct name\n", len(subs), instruction)
 	printList(subs)
-	i := readNum(len(subs))
-	return subs[i], nil
+  var reader func(int) int
+  if len(subs) <= 10 {
+    reader = readDigit
+  } else {
+    reader = readNum
+  }
+	return subs[reader(len(subs))], nil
 }
 
 func printList[T any](list []T) {
